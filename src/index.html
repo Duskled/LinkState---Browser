@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="LINKSTATE Browser decodes and opens portable websites locally." />
+    <title>LINKSTATE Browser</title>
+    <link rel="stylesheet" href="index.css" />
+    
+    <style>
+        /* =========================================================
+           BRAVE-STYLE DROPDOWN MENU
+        ========================================================= */
+        .browser-menu {
+            position: absolute;
+            top: 58px;
+            right: 14px;
+            z-index: 2000;
+            width: 290px;
+            background: var(--surface-hover);
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            padding: 8px 0;
+            font-family: inherit;
+            color: var(--text-primary);
+            animation: menuReveal 150ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+            transform-origin: top right;
+        }
+        
+        @keyframes menuReveal {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .browser-menu[hidden] {
+            display: none !important;
+        }
+
+        .menu-item-container {
+            position: relative;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 100ms ease;
+        }
+
+        .menu-item:hover, .menu-item-container:hover > .menu-item {
+            background: var(--surface-active);
+        }
+
+        .menu-item svg:not(.menu-chevron, .info-icon) {
+            width: 16px;
+            height: 16px;
+            margin-right: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        .menu-chevron {
+            width: 14px;
+            height: 14px;
+            margin-left: auto;
+            margin-right: -4px;
+            opacity: 0.6;
+        }
+
+        .menu-shortcut {
+            margin-left: auto;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            pointer-events: none;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: var(--border-strong);
+            margin: 6px 0;
+        }
+
+        /* =========================================================
+           CASCADING SUB-MENU 
+        ========================================================= */
+        .sub-menu {
+            position: absolute;
+            top: -8px;
+            right: 100%;
+            margin-right: 4px;
+            display: none;
+            width: 320px;
+            background: var(--surface-hover);
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            padding: 8px 0;
+            z-index: 2001;
+            transform-origin: top right;
+        }
+
+        .menu-item-container:hover .sub-menu {
+            display: block;
+            animation: menuReveal 150ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        .sub-menu-label {
+            padding: 6px 16px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .mini-history-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .mini-history-item:hover {
+            background: var(--surface-active);
+        }
+
+        .mini-history-icon {
+            width: 14px;
+            height: 14px;
+            margin-right: 12px;
+            border-radius: 2px;
+            background: var(--surface);
+            display: grid;
+            place-items: center;
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .mini-history-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        /* =========================================================
+           FULL INTERNAL PAGES
+        ========================================================= */
+        .internal-page {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            background: var(--background);
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .internal-page-content {
+            width: 100%;
+            max-width: 800px;
+        }
+        .internal-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-strong);
+            padding-bottom: 20px;
+        }
+        .internal-page-header h1 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            font-weight: 720;
+            letter-spacing: -0.035em;
+        }
+        .internal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .internal-list-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 150ms ease, border-color 150ms ease;
+        }
+        .internal-list-item:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-hover);
+        }
+        .item-icon { 
+            width: 32px; 
+            height: 32px; 
+            margin-right: 16px; 
+            display: grid; 
+            place-items: center; 
+            color: var(--text-secondary); 
+            background: var(--background); 
+            border-radius: 6px; 
+            flex-shrink: 0;
+        }
+        .item-icon svg { width: 18px; height: 18px; }
+        .item-details { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+        .item-title { color: var(--text-primary); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem; }
+        .item-url { color: var(--text-muted); font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-time { color: var(--text-muted); font-size: 0.75rem; margin-left: 16px; white-space: nowrap; text-align: right; }
+
+        /* =========================================================
+           PERSONALIZATION ENGINE (BRAVE STYLE)
+        ========================================================= */
+        .personalization-section {
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .theme-mode-selector {
+            display: flex;
+            background: var(--background);
+            border: 1px solid var(--border-strong);
+            border-radius: 24px;
+            padding: 4px;
+            width: fit-content;
+            margin-bottom: 24px;
+        }
+
+        .mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 24px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+
+        .mode-btn svg { width: 16px; height: 16px; }
+
+        .mode-btn:hover { color: var(--text-primary); }
+
+        .mode-btn.active-mode {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .brave-theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            gap: 16px;
+        }
+
+        .brave-swatch {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            background: var(--background);
+            border: 2px solid transparent;
+            padding: 6px;
+            cursor: pointer;
+            transition: transform 150ms ease, border-color 150ms ease;
+            display: grid;
+            place-items: center;
+            position: relative;
+        }
+
+        .brave-swatch:hover {
+            transform: scale(1.05);
+            background: var(--surface-hover);
+        }
+
+        .brave-swatch.active-swatch {
+            border-color: var(--text-primary);
+            background: var(--surface-active);
+        }
+
+        .swatch-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brave-swatch.active-swatch::after {
+            content: "✓";
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--text-primary);
+            color: var(--background);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            z-index: 5;
+        }
+
+        .wallpaper-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .wallpaper-thumb {
+            width: 100%;
+            height: 90px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 150ms ease, border-color 150ms ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .wallpaper-thumb:hover {
+            transform: scale(1.05);
+        }
+        .wallpaper-thumb.active-wallpaper {
+            border-color: var(--accent);
+        }
+        .wallpaper-thumb.active-wallpaper::after {
+            content: "✓";
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: var(--accent);
+            color: var(--accent-text);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* =========================================================
+           SEARCH SUGGESTIONS DROPDOWN
+        ========================================================= */
+        .search-suggestions {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--surface-hover);
+            border: 1px solid var(--border-strong);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            z-index: 2000;
+            overflow: hidden;
+            padding: 4px 0;
+        }
+        .suggestion-item {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .suggestion-item:hover {
+            background: var(--surface-active);
+        }
+        .suggestion-icon {
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        /* =========================================================
+           POPOVERS
+        ========================================================= */
+        .onboarding-popover {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 73px;
+            width: 290px;
+            background: var(--surface-hover);
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            z-index: 3000;
+            color: var(--text-primary);
+            transform-origin: top right;
+            animation: menuReveal 250ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+        .onboarding-popover h4 { margin: 0 0 8px 0; font-size: 0.95rem; color: var(--text-primary); }
+        .onboarding-popover p { margin: 0 0 16px 0; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; }
+        .popover-footer { display: flex; justify-content: space-between; align-items: center; }
+        .popover-footer label { font-size: 0.7rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .popover-btn { background: var(--text-primary); color: var(--background); border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: transform 150ms ease; }
+        .popover-btn:active { transform: scale(0.95); }
+        .popover-arrow { position: absolute; top: -6px; right: 18px; width: 12px; height: 12px; background: var(--surface-hover); border-top: 1px solid var(--border-strong); border-left: 1px solid var(--border-strong); transform: rotate(45deg); }
+
+        .downloads-popover { right: 90px; width: 320px; padding: 12px 16px; }
+        .downloads-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .downloads-header span { font-weight: 600; font-size: 0.85rem; }
+        .downloads-popover .internal-list-item { padding: 10px 8px; border-color: transparent; background: transparent; border-radius: 6px; }
+        .downloads-popover .internal-list-item:hover { background: var(--surface-active); }
+        .downloads-popover .item-icon { width: 32px; height: 32px; margin-right: 12px; background: var(--surface); border-radius: 6px; }
+        .downloads-popover .item-icon svg { width: 16px; height: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-shell">
+
+        <!-- =====================================================
+             TOP CHROME
+        ====================================================== -->
+        <header class="chrome-shell">
+            <!-- DYNAMIC TAB STRIP -->
+            <div class="tab-strip" id="tabStrip">
+                <button class="new-tab-button" id="newTabBtn" type="button" aria-label="New Tab" title="New Tab">
+                    <svg viewBox="0 0 24 24"><path d="M12 5V19"></path><path d="M5 12H19"></path></svg>
+                </button>
+            </div>
+
+            <!-- ===================== TOOLBAR ===================== -->
+            <div class="toolbar-row">
+                <div class="nav-group">
+                    <button class="toolbar-icon-button" type="button" disabled aria-label="Back unavailable" title="Back unavailable">
+                        <svg viewBox="0 0 24 24"><path d="M15 5L8 12L15 19"></path></svg>
+                    </button>
+                    <button class="toolbar-icon-button" type="button" disabled aria-label="Forward unavailable" title="Forward unavailable">
+                        <svg viewBox="0 0 24 24"><path d="M9 5L16 12L9 19"></path></svg>
+                    </button>
+                    <button class="toolbar-icon-button" type="button" disabled aria-label="Refresh unavailable" title="Refresh unavailable">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 11A8 8 0 1 0 18 16"></path>
+                            <path d="M20 5V11H14"></path>
+                        </svg>
+                    </button>
+                    <button class="toolbar-icon-button" id="homeButton" type="button" aria-label="Return home" title="Home">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3.5 11.25L12 4L20.5 11.25"></path>
+                            <path d="M5.5 10V20H18.5V10"></path>
+                            <path d="M9.5 20V14H14.5V20"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- ADDRESS BAR WITH SUGGESTION DROPDOWN -->
+                <div class="address-bar-shell" style="position: relative;">
+                    <div class="address-bar">
+                        <div class="address-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M9.5 14.5L14.5 9.5"></path>
+                                <path d="M7.25 16.75L5.75 18.25A4.24 4.24 0 0 1 -.25 12.25L3.25 8.75A4.24 4.24 0 0 1 9.25 8.75" transform="translate(2.5 0)"></path>
+                                <path d="M16.75 7.25L18.25 5.75A4.24 4.24 0 0 1 24.25 11.75L20.75 15.25A4.24 4.24 0 0 1 14.75 15.25" transform="translate(-2.5 0)"></path>
+                            </svg>
+                        </div>
+                        <input id="linkInput" type="text" maxlength="9999999" autocomplete="off" spellcheck="false" placeholder="Paste a LINKSTATE or Web URL..." aria-label="LINKSTATE address bar" />
+                        <button class="clear-input-button" id="clearInputButton" type="button" aria-label="Clear LINKSTATE" title="Clear" hidden>
+                            <svg viewBox="0 0 24 24"><path d="M6 6L18 18"></path><path d="M18 6L6 18"></path></svg>
+                        </button>
+                    </div>
+                    <div class="search-suggestions" id="topSuggestions" hidden></div>
+                </div>
+
+                <div class="toolbar-action-group" style="position: relative;">
+                    <button class="open-button-top" id="openButton" type="button">
+                        <span>Open</span>
+                        <svg viewBox="0 0 24 24"><path d="M5 12H19"></path><path d="M14 7L19 12L14 17"></path></svg>
+                    </button>
+                    
+                    <button class="toolbar-icon-button" id="toolbarDownloadBtn" type="button" aria-label="Downloads" title="Downloads">
+                        <svg class="base-icon" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <g class="dl-arrow">
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </g>
+                        </svg>
+                        <svg class="dl-progress-ring" viewBox="0 0 24 24">
+                            <circle class="dl-ring-bg" cx="12" cy="12" r="10"></circle>
+                            <circle class="dl-ring-fill" cx="12" cy="12" r="10"></circle>
+                        </svg>
+                    </button>
+
+                    <button class="toolbar-icon-button" id="recoverButton" type="button" aria-label="Extract source files" title="Extract source files" disabled>
+    <svg viewBox="0 0 24 24">
+        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+        <polyline points="13 2 13 9 20 9"></polyline>
+    </svg>
+</button>
+
+                    <button class="toolbar-icon-button" id="saveStateBtn" type="button" aria-label="Save project" title="Save .linkstate alias" disabled>
+                        <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
+                    
+                    <button class="toolbar-icon-button" id="braveMenuButton" type="button" aria-label="Menu" title="Menu">
+                        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
+                    </button>
+
+                    <div id="extractPopover" class="onboarding-popover" hidden>
+                        <div class="popover-arrow"></div>
+                        <h4>Extract Source Files</h4>
+                        <p>You can download the original HTML, CSS, and JS files from this LINKSTATE directly to your computer at any time.</p>
+                        <div class="popover-footer">
+                            <label><input type="checkbox" id="neverShowPopoverCheck"> Don't show again</label>
+                            <button id="dismissPopoverBtn" class="popover-btn">Got it</button>
+                        </div>
+                    </div>
+
+                    <div id="downloadsPopover" class="onboarding-popover downloads-popover" hidden>
+                        <div class="popover-arrow"></div>
+                        <div class="downloads-header">
+                            <span>Recent download history</span>
+                            <button id="closeDownloadsPopover" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;display:grid;place-items:center;">
+                                <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <div id="downloadsPopoverList" class="internal-list" style="margin: 10px 0; max-height: 250px; overflow-y: auto;"></div>
+                        <div class="menu-divider" style="margin-top:0;"></div>
+                        <button class="menu-item" id="openFullDownloadsBtn" style="padding: 10px 4px; border-radius: 6px;">
+                            <span style="font-weight: 600; font-size: 0.8rem;">Full download history</span>
+                            <svg viewBox="0 0 24 24" style="margin-left:auto; margin-right:0; width:14px; height:14px; opacity:0.6;"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- =====================================================
+             DROPDOWN MENU
+        ====================================================== -->
+        <div id="browserMenu" class="browser-menu" hidden>
+            <button class="menu-item" id="menuNewTab">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+                <span>New tab</span>
+                <span class="menu-shortcut">Ctrl+T</span>
+            </button>
+            
+            <div class="menu-divider"></div>
+            
+            <div class="menu-item-container">
+                <button class="menu-item" id="menuHistoryTrigger">
+                    <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>History</span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
+                </button>
+                <div class="sub-menu" id="historySubMenu">
+                    <button class="menu-item" id="menuHistoryPage">
+                        <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>History</span>
+                        <span class="menu-shortcut">Ctrl+H</span>
+                    </button>
+                    <div class="menu-divider"></div>
+                    <div class="sub-menu-label">Recent tabs</div>
+                    <div id="historyListMini"></div>
+                </div>
+            </div>
+
+            <div class="menu-item-container">
+                <button class="menu-item" id="menuDownloadsTrigger">
+                    <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    <span>Downloads</span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
+                </button>
+                
+                <div class="sub-menu" id="downloadsSubMenu">
+                    <button class="menu-item" id="menuDownloadsPage">
+                        <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        <span>Downloads</span>
+                        <span class="menu-shortcut">Ctrl+J</span>
+                    </button>
+                    
+                    <div class="menu-divider"></div>
+                    <div class="sub-menu-label">Recent downloads</div>
+                    <div id="downloadsListMini"></div>
+                </div>
+            </div>
+            <button class="menu-item" id="menuClearData">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                <span>Clear browsing data</span>
+            </button>
+
+            <div class="menu-divider"></div>
+
+            <button class="menu-item" id="menuSavedStatesPage">
+                <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                <span>Saved Projects</span>
+            </button>
+
+            <!-- APPEARANCE HOVER MENU -->
+            <div class="menu-item-container">
+                <button class="menu-item">
+                    <svg viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <span>Appearance</span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
+                </button>
+                <div class="sub-menu">
+                    <button class="mini-history-item" onclick="setBaseTheme('light')">
+                        <svg class="mini-history-icon" viewBox="0 0 24 24" style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="4"/>
+  
+  <line x1="12" y1="2" x2="12" y2="4"/>
+  <line x1="12" y1="20" x2="12" y2="22"/>
+  
+  <line x1="2" y1="12" x2="4" y2="12"/>
+  <line x1="20" y1="12" x2="22" y2="12"/>
+  
+  <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/>
+  <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/>
+  
+  <line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/>
+  <line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/>
+</svg>
+                        Light Mode
+                    </button>
+                    <button class="mini-history-item" onclick="setBaseTheme('dark')">
+                        <svg class="mini-history-icon" viewBox="0 0 24 24" style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"/>
+</svg>
+                        Dark Mode
+                    </button>
+                </div>
+            </div>
+
+            <!-- PERSONALIZATION PAGE LINK -->
+            <button class="menu-item" id="menuPersonalizationPage">
+                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.1 0 2-.9 2-2 0-.51-.2-.98-.52-1.32-.31-.33-.5-.79-.5-1.28 0-1.1.9-2 2-2H17c2.76 0 5-2.24 5-5 0-4.42-4.48-8-10-8z"></path>
+    <circle cx="6.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"></circle>
+    <circle cx="9.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"></circle>
+    <circle cx="14.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"></circle>
+    <circle cx="17.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"></circle>
+</svg>
+                <span>Personalization</span>
+            </button>
+            
+            <div class="menu-item-container">
+                <button class="menu-item" id="menuOpenOnestate">
+        <!-- The main folder icon -->
+        <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        
+        <span>Open Onestate file</span>
+        
+        <!-- THE MISSING INFO ICON -->
+        <span class="info-tooltip-wrapper" data-title="Load a downloaded .onestate file to open a fully packaged, offline website directly in the browser.">
+    <svg class="info-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; opacity: 0.5;">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+</span>
+</span>
+    </button>
+    <input type="file" id="onestateFileInput" accept=".onestate,.linkstate" hidden>
+            </div>
+            
+            <div class="menu-divider"></div>
+
+            
+            <button class="menu-item" id="menuAboutBrowser" onclick="document.getElementById('aboutPage').style.display='block'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+    <span>About Browser</span>
+</button>
+            
+            <div class="menu-divider"></div>
+            <button class="menu-item" id="menuExit">
+                <svg viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                <span>Exit</span>
+            </button>
+            
+        </div>
+
+        <!-- =====================================================
+             STATUS
+        ====================================================== -->
+        <div class="status-strip" id="statusBar" hidden>
+            <span id="statusText">Ready</span>
+        </div>
+
+        <!-- =====================================================
+             MAIN VIEWPORT
+        ====================================================== -->
+        <main class="browser-stage">
+
+            <!-- AMBIENT CANVAS BACKGROUND -->
+            <canvas id="ambientCanvas" aria-hidden="true"></canvas>
+
+            <!-- ===================== HOME ===================== -->
+            <section class="empty-state" id="emptyState">
+                <div class="hero-brand">
+                    <div class="hero-brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M8.5 7.5H6.75A4.25 4.25 0 0 0 2.5 11.75A4.25 4.25 0 0 0 6.75 16H10"></path><path d="M15.5 7.5H17.25A4.25 4.25 0 0 1 21.5 11.75A4.25 4.25 0 0 1 17.25 16H14"></path><path d="M8 11.75H16"></path></svg>
+                    </div>
+                    <div class="hero-brand-text">
+                        <strong>LINKSTATE</strong>
+                        <span>Browser</span>
+                    </div>
+                </div>
+                <h1>Open websites<br>packed inside links.</h1>
+                <p class="hero-description">Paste a LINKSTATE below. This browser decodes the project locally, opens the contained site, and can recover the original files.</p>
+
+                <!-- HERO SEARCH WITH SUGGESTION DROPDOWN -->
+                <div class="hero-search-shell">
+                    <div class="hero-search">
+                        <div class="hero-search-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M9.5 14.5L14.5 9.5"></path><path d="M7.25 16.75L5.75 18.25A4.24 4.24 0 0 1 -.25 12.25L3.25 8.75A4.24 4.24 0 0 1 9.25 8.75" transform="translate(2.5 0)"></path><path d="M16.75 7.25L18.25 5.75A4.24 4.24 0 0 1 24.25 11.75L20.75 15.25A4.24 4.24 0 0 1 14.75 15.25" transform="translate(-2.5 0)"></path></svg>
+                        </div>
+                        <input id="heroLinkInput" type="text" maxlength="9999999" autocomplete="off" spellcheck="false" placeholder="Paste a LINKSTATE..." aria-label="Centered LINKSTATE input" />
+                    </div>
+                    <div class="search-suggestions" id="heroSuggestions" hidden style="top: 66px;"></div>
+                    <button class="hero-open-button" id="heroOpenButton" type="button">
+                        <span>Open LINKSTATE</span>
+                        <svg viewBox="0 0 24 24"><path d="M5 12H19"></path><path d="M14 7L19 12L14 17"></path></svg>
+                    </button>
+                </div>
+
+                <div class="hero-note" style="margin-top: 18px;">
+                    <span style="color: var(--text-muted); font-size: 0.75rem;">Don't have a LINKSTATE?</span>
+                    <span id="openGenerateView" style="cursor: pointer; text-decoration: underline; color: var(--text-secondary); font-size: 0.75rem; margin-left: 5px; transition: color 150ms ease;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+                        Generate one here.
+                    </span>
+                </div>
+            </section>
+
+            <!-- ===================== GENERATE ===================== -->
+            <section class="empty-state" id="generateState" hidden>
+                <div class="generate-wrapper">
+                    <h1>Generate<br>LINKSTATE.</h1>
+                    <p class="hero-description" id="genDescription" style="margin-top: 16px; margin-bottom: 30px;">
+                        Package a static website into a single portable link.
+                    </p>
+                    
+                    <div id="genActionContainer" class="gen-drop-zone">
+                        <div class="gen-drop-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 15V4"></path><path d="M7.5 8.5L12 4L16.5 8.5"></path><path d="M5 14V18A2 2 0 0 0 7 20H17A2 2 0 0 0 19 18V14"></path></svg>
+                        </div>
+                        <strong class="gen-drop-title">Drop your website folder here</strong>
+                        <span class="gen-drop-subtitle">or choose from your computer</span>
+
+                        <div class="gen-drop-actions">
+                            <label class="secondary-button gen-btn-action">
+                                Choose Folder
+                                <input type="file" id="genFolderInput" webkitdirectory directory multiple hidden>
+                            </label>
+                            <label class="secondary-button gen-btn-action">
+                                Choose HTML File
+                                <input type="file" id="genFileInput" accept=".html,.htm,text/html" hidden>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="genResultContainer" style="display: none; flex-direction: column; align-items: center; gap: 20px; width: min(650px, 100%); margin-top: 20px;">
+                        <div class="address-bar" style="width: 100%; cursor: text;" onclick="document.getElementById('genResultLink').select()">
+                            <input id="genResultLink" type="text" maxlength="9999999" readonly style="width: 100%; height: 100%; min-width: 0; padding: 0 18px; color: var(--text-primary); background: transparent; border: 0; outline: none; font-size: 0.79rem; text-align: center;">
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%;">
+                            <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
+                                <button class="secondary-button" id="genOpenButton" type="button" style="margin-top: 0; background: var(--accent); color: var(--accent-text); border-color: var(--accent);">Open</button>
+                                <button class="secondary-button" id="genCopyButton" type="button" style="margin-top: 0;">Copy Link</button>
+                                <button class="secondary-button" id="genDownloadButton" type="button" style="margin-top: 0;">Download File</button>
+                            </div>
+                            <div style="display: flex; gap: 16px; align-items: center; justify-content: center;">
+                                <button id="genResetButton" type="button" style="display: none; background: transparent; border: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: color 150ms ease;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">Package Another</button>
+                                <span id="genFooterDivider" style="display: none; color: var(--border-strong); font-size: 0.72rem;">|</span>
+                                <button class="gen-back-link" id="genBackButton" type="button" style="margin-top: 0;">Return to browser</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== HISTORY PAGE ===================== -->
+            <section class="internal-page" id="historyState" hidden>
+                <div class="internal-page-content">
+                    <div class="internal-page-header">
+                        <h1>History</h1>
+                        <button class="secondary-button" id="clearHistoryPageBtn" style="margin-top: 0; color: var(--error); border-color: rgba(255,113,105,0.3); background: rgba(255,113,105,0.05);">
+                            Clear browsing data
+                        </button>
+                    </div>
+                    <div id="fullHistoryList" class="internal-list"></div>
+                </div>
+            </section>
+
+            <!-- ===================== DOWNLOADS PAGE ===================== -->
+            <section class="internal-page" id="downloadsState" hidden>
+                <div class="internal-page-content">
+                    <div class="internal-page-header">
+                        <h1>Downloads</h1>
+                        <button class="secondary-button" id="clearDownloadsPageBtn" style="margin-top: 0; color: var(--error); border-color: rgba(255,113,105,0.3); background: rgba(255,113,105,0.05);">
+                            Clear download history
+                        </button>
+                    </div>
+                    <div id="fullDownloadsList" class="internal-list"></div>
+                </div>
+            </section>
+
+            <!-- ===================== SAVED PROJECTS PAGE ===================== -->
+            <section class="internal-page" id="savedStatesState" hidden>
+                <div class="internal-page-content">
+                    <div class="internal-page-header">
+                        <h1>Saved Projects</h1>
+                    </div>
+                    <div id="fullSavedStatesList" class="internal-list"></div>
+                </div>
+            </section>
+
+            <!-- ===================== ABOUT PAGE ===================== -->
+<section class="internal-page" id="aboutState" hidden>
+    <div class="internal-page-content" style="max-width: 950px; margin: 0 auto;">
+        <div class="internal-page-header">
+            <h1>About Browser</h1>
+        </div>
+        
+        <!-- TOP: Hero Text -->
+        <div style="margin-bottom: 40px; max-width: 850px;">
+            <h1 style="font-size: 2.4rem; color: var(--accent); margin: 0 0 16px 0; letter-spacing: -0.02em; line-height: 1.2;">The web was meant to be shared, not complicated.</h1>
+            <p style="font-size: 1.15rem; color: var(--text-secondary); margin: 0; line-height: 1.6;">We are bypassing the servers, the terminals, and the deployment pipelines. By stripping away the steep learning curve of repositories and IDE setups, this environment puts the power of instant creation and seamless sharing back where it belongs: in your hands.</p>
+        </div>
+
+        <!-- MIDDLE: Two-Column Feature Cards -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div style="background: var(--surface); padding: 28px; border-radius: 12px; border: 1px solid var(--border-strong);">
+                <h3 style="margin: 0 0 14px 0; font-size: 1.15rem; color: var(--text-primary); letter-spacing: -0.01em;">The End of Deployment Friction</h3>
+                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">Remember the hours lost explaining what a repository is, or wrestling with <code>git push</code> just to show someone a prototype? That ends today. Package your entire project into a single, instantly executable link or a lightweight <strong>.onestate</strong> file. You share it. They open it. It runs locally. It is an absolute lifesaver for beginners and a massive time-saver for professionals.</p>
+            </div>
+
+            <div style="background: var(--surface); padding: 28px; border-radius: 12px; border: 1px solid var(--border-strong);">
+                <h3 style="margin: 0 0 14px 0; font-size: 1.15rem; color: var(--text-primary); letter-spacing: -0.01em;">Your Private Digital Library</h3>
+                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">When you find a project you love, you shouldn't have to rely on a third-party server to keep it. Bookmark it directly into your local environment using a custom <strong>name.linkstate</strong> alias. You are building a permanent, offline, and instantly accessible archive of the web—entirely on your own terms.</p>
+            </div>
+        </div>
+
+        <!-- BOTTOM: Full-Width Roadmap Card -->
+        <div style="background: var(--surface); padding: 32px; border-radius: 12px; border: 1px solid var(--accent); position: relative; overflow: hidden;">
+            <!-- Subtle glow effect -->
+            <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--accent); opacity: 0.05; filter: blur(40px); border-radius: 50%;"></div>
+            
+            <h3 style="margin: 0 0 16px 0; font-size: 1.3rem; color: var(--accent); letter-spacing: -0.02em;">The Paradigm Shift (Future Roadmap)</h3>
+            <p style="margin: 0 0 20px 0; font-size: 1rem; color: var(--text-primary); line-height: 1.6;">This is just the prototype. We are fundamentally rethinking how browsing, building, and sharing works:</p>
+            
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7;">
+                <li style="margin-bottom: 12px;"><strong style="color: var(--text-primary);">Limitless Expansion:</strong> Breaking the boundaries of file size and format, moving far beyond standard HTML/CSS/JS to support massive, asset-heavy digital environments and multimedia.</li>
+                <li style="margin-bottom: 12px;"><strong style="color: var(--text-primary);">The Ultimate Workspace:</strong> Why switch apps? Soon, you will write, edit, and execute your code directly inside the browser UI. The viewer becomes the studio.</li>
+                <li><strong style="color: var(--text-primary);">The Compiled Web (Locked .onestates):</strong> The most disruptive shift in web sharing. Imagine packaging your project so it runs perfectly offline, but the source code is entirely locked. No decoding. No file extraction. Share your vision securely, protect your intellectual property, and deliver offline services with absolute confidence.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+            <!-- ===================== PERSONALIZATION PAGE ===================== -->
+            <section class="internal-page" id="personalizationState" hidden>
+                <div class="internal-page-content">
+                    <div class="internal-page-header">
+                        <h1>Personalization</h1>
+                    </div>
+
+                    <div class="personalization-section">
+                        <h3 style="margin-bottom: 16px; font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.1 0 2-.9 2-2 0-.51-.2-.98-.52-1.32-.31-.33-.5-.79-.5-1.28 0-1.1.9-2 2-2H17c2.76 0 5-2.24 5-5 0-4.42-4.48-8-10-8z"></path>
+    <circle cx="6.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"></circle>
+    <circle cx="9.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"></circle>
+    <circle cx="14.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"></circle>
+    <circle cx="17.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"></circle>
+</svg>
+                            Theme and colors
+                        </h3>
+                        
+                        <!-- BRAVE-STYLE LIGHT/DARK SELECTOR -->
+                        <div class="theme-mode-selector">
+                            <button class="mode-btn" id="modeBtnLight" onclick="setBaseTheme('light')">
+    <svg class="mini-history-icon" viewBox="0 0 24 24" style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <line x1="12" y1="2" x2="12" y2="4"/>
+      <line x1="12" y1="20" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="4" y2="12"/>
+      <line x1="20" y1="12" x2="22" y2="12"/>
+      <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/>
+      <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/>
+      <line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/>
+      <line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/>
+    </svg> Light
+</button>
+                            <button class="mode-btn active-mode" id="modeBtnDark" onclick="setBaseTheme('dark')">
+    <svg class="mini-history-icon" viewBox="0 0 24 24" style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"/>
+    </svg> Dark
+</button>
+                        </div>
+
+                        <!-- BRAVE-STYLE MULTI-COLOR ACCENT SWATCHES -->
+                        <div class="brave-theme-grid" id="themeGrid">
+                            <button class="brave-swatch active-swatch" data-accent="default">
+                                <div class="swatch-circle" style="background: conic-gradient(#e8eaed 0 180deg, #5f6368 180deg 270deg, #3c4043 270deg 360deg);"></div>
+                            </button>
+                            <button class="brave-swatch" data-accent="blue">
+                                <div class="swatch-circle" style="background: conic-gradient(#4c8bf5 0 180deg, #1b3a7a 180deg 270deg, #2f4f8f 270deg 360deg);"></div>
+                            </button>
+                            <button class="brave-swatch" data-accent="purple">
+                                <div class="swatch-circle" style="background: conic-gradient(#a15fdf 0 180deg, #441a6b 180deg 270deg, #5b288a 270deg 360deg);"></div>
+                            </button>
+                            <button class="brave-swatch" data-accent="crimson">
+                                <div class="swatch-circle" style="background: conic-gradient(#e04854 0 180deg, #6e161f 180deg 270deg, #91242e 270deg 360deg);"></div>
+                            </button>
+                            <button class="brave-swatch" data-accent="emerald">
+                                <div class="swatch-circle" style="background: conic-gradient(#34a853 0 180deg, #0f4f22 180deg 270deg, #1c6b32 270deg 360deg);"></div>
+                            </button>
+                            <button class="brave-swatch" data-accent="amber">
+                                <div class="swatch-circle" style="background: conic-gradient(#f9ab00 0 180deg, #7a5100 180deg 270deg, #a87200 270deg 360deg);"></div>
+                            </button>
+                            <button class="brave-swatch" data-accent="sunset">
+                                <div class="swatch-circle" style="background: conic-gradient(#fa7b17 0 180deg, #8a3c00 180deg 270deg, #b85400 270deg 360deg);"></div>
+                            </button>
+                            <button class="brave-swatch" data-accent="rose">
+                                <div class="swatch-circle" style="background: conic-gradient(#f2688f 0 180deg, #7a1d3a 180deg 270deg, #9e2a4f 270deg 360deg);"></div>
+                            </button>
+
+                            <!-- COLOR PICKER SWATCH -->
+                            <button class="brave-swatch" id="customColorPickerBtn" data-accent="custom" title="Custom Color">
+                                <div class="swatch-circle" style="background: var(--surface-active); display: grid; place-items: center;">
+                                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; color: var(--text-primary);" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+    <path d="m15 5 4 4"/>
+</svg>
+                                </div>
+                                <input type="color" id="customColorInput" hidden>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="personalization-section" style="margin-top: 24px;">
+                        <h3 style="margin-bottom: 8px; font-weight: 600; font-size: 1.1rem;">Custom Wallpaper</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 20px;">Upload an image to replace the dynamic ambient background.</p>
+                        
+                        <div style="display: flex; gap: 12px; margin-bottom: 30px;">
+                            <button class="secondary-button" id="uploadWallpaperBtn" style="margin-top: 0; background: var(--accent); color: var(--accent-text); border-color: var(--accent);">Upload Image...</button>
+                            <button class="secondary-button" id="clearWallpaperBtn" style="margin-top: 0; color: var(--error); border-color: rgba(255,113,105,0.3); background: rgba(255,113,105,0.05);">Clear Wallpaper</button>
+                            <input type="file" id="wallpaperInput" accept="image/*" hidden>
+                        </div>
+                        
+                        <h4 style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.85rem;">Recent Wallpapers</h4>
+                        <div class="wallpaper-grid" id="recentWallpapersGrid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== LOADING ===================== -->
+            <section class="loading-state" id="loadingState" hidden>
+                <div class="loading-spinner" aria-hidden="true"></div>
+                <strong id="loadingTitle">Decoding LINKSTATE</strong>
+                <span id="loadingMessage">Reconstructing the contained website...</span>
+            </section>
+
+            <!-- ===================== DYNAMIC VIEWPORT CONTAINER ===================== -->
+            <div id="viewportContainer" style="position: absolute; inset: 0; z-index: 50; width: 100%; height: 100%; pointer-events: none;">
+                <iframe class="website-frame" id="websiteFrame" title="LINKSTATE website" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" hidden></iframe>
+                <webview class="website-frame" id="standardWebFrame" hidden></webview>
+            </div>
+
+            <!-- ===================== ERROR ===================== -->
+            <section class="error-state" id="errorState" hidden>
+                <div class="error-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5V13"></path><circle cx="12" cy="16.5" r="0.8"></circle></svg>
+                </div>
+                <h2>Could not open this LINKSTATE</h2>
+                <p id="errorMessage">The LINKSTATE may be incomplete or invalid.</p>
+                <button class="secondary-button" id="errorBackButton" type="button">Return Home</button>
+            </section>
+
+        </main>
+
+        <!-- =====================================================
+             FOOTER
+        ====================================================== -->
+        <footer class="browser-footer">
+            <div class="footer-left">
+                <span id="runtimeStatus">Local LINKSTATE Runtime</span>
+            </div>
+            <div class="project-information" id="projectInformation" hidden>
+                <span id="projectName">Website</span>
+                <span class="footer-divider" aria-hidden="true"></span>
+                <span id="projectFileCount">0 files</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- =====================================================
+         RECOVERY PANEL
+    ====================================================== -->
+    <div class="recovery-overlay" id="recoveryOverlay" hidden>
+        <aside class="recovery-panel" aria-labelledby="recoveryTitle">
+            <div class="recovery-panel-header">
+                <div>
+                    <span class="panel-label">SOURCE PROJECT</span>
+                    <h2 id="recoveryTitle">Recover Files</h2>
+                </div>
+                <button class="toolbar-icon-button" id="closeRecoveryButton" type="button" aria-label="Close recovery panel">
+                    <svg viewBox="0 0 24 24"><path d="M6 6L18 18"></path><path d="M18 6L6 18"></path></svg>
+                </button>
+            </div>
+            <div class="recovery-project-summary">
+                <strong id="recoveryProjectName">Website</strong>
+                <span id="recoveryProjectMeta">0 files</span>
+            </div>
+            <div class="recovery-files" id="recoveryFiles"></div>
+            <div class="recovery-panel-footer">
+                <button class="download-project-button" id="downloadProjectButton" type="button">
+                    <svg viewBox="0 0 24 24"><path d="M12 3V15"></path><path d="M7.5 10.5L12 15L16.5 10.5"></path><path d="M4 19H20"></path></svg>
+                    <span>Download Entire Project</span>
+                </button>
+                <p>Files are recovered locally from the LINKSTATE.</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- =====================================================
+         SAVE ALIAS MODAL
+    ====================================================== -->
+    <div class="recovery-overlay" id="saveModal" hidden style="align-items: center; justify-content: center;">
+        <div class="recovery-panel" style="width: 400px; height: auto; border-radius: 12px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+            <h2 style="margin: 0 0 16px;">Save Local Alias</h2>
+            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 20px;">Type a name to instantly access this project later.</p>
+            <div class="address-bar" style="margin-bottom: 20px;">
+                <input type="text" id="saveNameInput" maxlength="9999999" placeholder="my-project" style="width: 100%; background: transparent; border: none; color: var(--text-primary); padding: 0 16px; outline: none;">
+                <span style="padding-right: 16px; color: var(--text-muted); font-weight: 600;">.linkstate</span>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="secondary-button" id="cancelSaveBtn" style="margin: 0;">Cancel</button>
+                <button class="secondary-button" id="confirmSaveBtn" style="margin: 0; background: var(--accent); color: var(--accent-text);">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

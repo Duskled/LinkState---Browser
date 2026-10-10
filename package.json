@@ -1,0 +1,32 @@
+{
+  "name": "linkstate-browser",
+  "productName": "LINKSTATE Browser",
+  "version": "3.0.0",
+  "description": "A local browser for opening and recovering LINKSTATE websites.",
+  "main": "src/index.js",
+  "private": true,
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [],
+  "author": "Aman Singh",
+  "license": "MIT",
+  "dependencies": {
+    "electron-squirrel-startup": "^3.0.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-deb": "^7.11.2",
+    "@electron-forge/maker-rpm": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.2",
+    "@electron-forge/plugin-fuses": "^7.11.2",
+    "@electron/fuses": "^1.8.0",
+    "electron": "43.4.0"
+  }
+}
