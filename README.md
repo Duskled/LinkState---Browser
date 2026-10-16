@@ -1,59 +1,48 @@
 # LINKSTATE Browser
 
-## The Paradigm Shift
+so basically LINKSTATE Browser is a project i made to make sharing websites easier.
 
-For developers, especially beginners, sharing a frontend project traditionally means dealing with GitHub repositories, `git push/pull` workflows, complex local server setups, and cloud hosting configurations. It introduces massive friction just to show someone a prototype, a UI mockup, or a physics simulation.
+normally if you wanna share a website project with someone you have to deal with github, git, hosting and other stuff which is kinda annoying specially for beginners.
 
-**LINKSTATE Browser** completely compresses that deployment pipeline. By stripping away the steep learning curve of repositories and IDE setups, this environment puts the power of instant creation and seamless sharing back where it belongs: in your hands.
+with LINKSTATE Browser you can just upload your website folder and turn it into a single link or a `.onestate` file and share it with others. they can open it in LINKSTATE Browser and view the project without needing any normal web hosting.
 
-You upload your website folder, get a single portable link or a `.onestate` file, and share it anywhere. The receiver opens it directly in LINKSTATE Browser, with offline rendering and no traditional web hosting required.
+features:-
 
-## Core Features
+- upload HTML, CSS, JS files and assets like images, fonts and 3D models and pack them all together.
+- save projects locally using custom `.linkstate` aliases so you can open them anytime.
+- supports bundling images, SVGs and 3D models using Base64 data URLs.
+- extract source files from supported unlocked `.onestate` files.
+- customize the browser with themes, colors, wallpapers and an interactive background.
+- supports desktop features like `.onestate` file association on Windows.
 
-- **Zero Deployment Friction**: Drag and drop your HTML/CSS/JS files, including images, fonts, and 3D assets. The browser automatically encodes everything into a standalone package. Share the link or the lightweight `.onestate` file.
-- **Your Private Digital Library**: Bookmark projects directly into your local environment using custom `name.linkstate` aliases. Build a permanent, offline, and instantly accessible archive of web projects.
-- **Universal Asset Bundling**: Images, SVGs, and 3D models (`.glb`, `.gltf`) can be converted into Base64 data URLs to keep assets bundled with the project.
-- **Source Recovery**: Extract and rebuild source files from supported, unlocked `.onestate` packages directly to your local drive.
-- **Developer-First Workspace**: A modern interface featuring asymmetrical grids, Brave-style personalization with custom themes, accent colors, wallpapers, and an ambient interactive canvas background.
-- **Native OS Integration**: Supports installation through Squirrel, `.onestate` file associations on Windows, and remembering window dimensions across sessions.
+how it works?
 
-## How It Works
+1. upload your website folder.
+2. LINKSTATE packs the files into a link or `.onestate` file.
+3. share it with someone.
+4. they open it in LINKSTATE Browser and run the project offline.
 
-1. **Package**: Drop your website folder into the LINKSTATE generator.
-2. **Share**: The engine reads your files and bundles them into a shareable link or a downloadable `.onestate` file.
-3. **Run**: The recipient opens the link or file in LINKSTATE Browser, which decodes the package and renders the website offline.
+no need to setup hosting just to share a simple website.
 
-## Future Roadmap
+future plans:-
 
-This v3.0 prototype is just the beginning. We are rethinking how browsing, building, and sharing work.
+i still wanna add more stuff to this project like support for more file types and bigger projects.
 
-- **Limitless Expansion**: Expand beyond standard frontend files to support more file types and asset-heavy digital environments.
-- **The Ultimate Workspace (In-Browser IDE)**: Write, edit, and execute code directly inside the browser UI, with an integrated AI coding assistant. The viewer becomes the studio.
-- **The Compiled Web (Locked `.onestate` Files)**: Develop packages that run offline while restricting access to their original source code, helping creators distribute projects without exposing their source files.
+also planning to add a code editor inside the browser with an AI coding assistant so users can write and edit code directly without switching between different apps.
 
-## Installation & Setup
+another idea is locked `.onestate` files which will let people run projects offline without showing the original source code.
 
-To build and run the prototype locally:
+to run it locally:
 
 ```bash
-# Clone the repository
 git clone https://github.com/Duskled/LinkState---Browser.git
-
-# Navigate into the directory
 cd LinkState---Browser
-
-# Install dependencies
 npm install
-
-# Start the browser in development mode
 npm start
-
-# Package the application for your OS
-npm run make
 ```
 
-## Author
+to build the app use `npm run make`.
 
-Created by **Aman Singh** ([@Duskled](https://github.com/Duskled))
+made by Aman Singh ([@Duskled](https://github.com/Duskled))
 
-*Passionate about removing friction from development and rethinking how we interact with the web.*
+still a prototype for now, but theres more stuff i wanna do with it.
