@@ -6,11 +6,8 @@
     <meta name="description" content="LINKSTATE Browser decodes and opens portable websites locally." />
     <title>LINKSTATE Browser</title>
     <link rel="stylesheet" href="index.css" />
-    
+
     <style>
-        /* =========================================================
-           BRAVE-STYLE DROPDOWN MENU
-        ========================================================= */
         .browser-menu {
             position: absolute;
             top: 58px;
@@ -27,7 +24,7 @@
             animation: menuReveal 150ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
             transform-origin: top right;
         }
-        
+
         @keyframes menuReveal {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
@@ -91,9 +88,6 @@
             margin: 6px 0;
         }
 
-        /* =========================================================
-           CASCADING SUB-MENU 
-        ========================================================= */
         .sub-menu {
             position: absolute;
             top: -8px;
@@ -159,9 +153,6 @@
             max-width: 250px;
         }
 
-        /* =========================================================
-           FULL INTERNAL PAGES
-        ========================================================= */
         .internal-page {
             position: absolute;
             inset: 0;
@@ -227,9 +218,6 @@
         .item-url { color: var(--text-muted); font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .item-time { color: var(--text-muted); font-size: 0.75rem; margin-left: 16px; white-space: nowrap; text-align: right; }
 
-        /* =========================================================
-           PERSONALIZATION ENGINE (BRAVE STYLE)
-        ========================================================= */
         .personalization-section {
             background: var(--surface);
             border: 1px solid var(--border-strong);
@@ -370,9 +358,6 @@
             font-weight: bold;
         }
 
-        /* =========================================================
-           SEARCH SUGGESTIONS DROPDOWN
-        ========================================================= */
         .search-suggestions {
             position: absolute;
             top: calc(100% + 6px);
@@ -404,9 +389,6 @@
             flex-shrink: 0;
         }
 
-        /* =========================================================
-           POPOVERS
-        ========================================================= */
         .onboarding-popover {
             position: absolute;
             top: calc(100% + 12px);
@@ -443,18 +425,13 @@
 
     <div class="app-shell">
 
-        <!-- =====================================================
-             TOP CHROME
-        ====================================================== -->
         <header class="chrome-shell">
-            <!-- DYNAMIC TAB STRIP -->
             <div class="tab-strip" id="tabStrip">
                 <button class="new-tab-button" id="newTabBtn" type="button" aria-label="New Tab" title="New Tab">
                     <svg viewBox="0 0 24 24"><path d="M12 5V19"></path><path d="M5 12H19"></path></svg>
                 </button>
             </div>
 
-            <!-- ===================== TOOLBAR ===================== -->
             <div class="toolbar-row">
                 <div class="nav-group">
                     <button class="toolbar-icon-button" type="button" disabled aria-label="Back unavailable" title="Back unavailable">
@@ -478,7 +455,6 @@
                     </button>
                 </div>
 
-                <!-- ADDRESS BAR WITH SUGGESTION DROPDOWN -->
                 <div class="address-bar-shell" style="position: relative;">
                     <div class="address-bar">
                         <div class="address-icon" aria-hidden="true">
@@ -501,7 +477,7 @@
                         <span>Open</span>
                         <svg viewBox="0 0 24 24"><path d="M5 12H19"></path><path d="M14 7L19 12L14 17"></path></svg>
                     </button>
-                    
+
                     <button class="toolbar-icon-button" id="toolbarDownloadBtn" type="button" aria-label="Downloads" title="Downloads">
                         <svg class="base-icon" viewBox="0 0 24 24">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -526,7 +502,7 @@
                     <button class="toolbar-icon-button" id="saveStateBtn" type="button" aria-label="Save project" title="Save .linkstate alias" disabled>
                         <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                     </button>
-                    
+
                     <button class="toolbar-icon-button" id="braveMenuButton" type="button" aria-label="Menu" title="Menu">
                         <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
                     </button>
@@ -560,18 +536,15 @@
             </div>
         </header>
 
-        <!-- =====================================================
-             DROPDOWN MENU
-        ====================================================== -->
         <div id="browserMenu" class="browser-menu" hidden>
             <button class="menu-item" id="menuNewTab">
                 <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
                 <span>New tab</span>
                 <span class="menu-shortcut">Ctrl+T</span>
             </button>
-            
+
             <div class="menu-divider"></div>
-            
+
             <div class="menu-item-container">
                 <button class="menu-item" id="menuHistoryTrigger">
                     <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -596,14 +569,14 @@
                     <span>Downloads</span>
                     <svg class="menu-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
                 </button>
-                
+
                 <div class="sub-menu" id="downloadsSubMenu">
                     <button class="menu-item" id="menuDownloadsPage">
                         <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4"></path></svg>
                         <span>Downloads</span>
                         <span class="menu-shortcut">Ctrl+J</span>
                     </button>
-                    
+
                     <div class="menu-divider"></div>
                     <div class="sub-menu-label">Recent downloads</div>
                     <div id="downloadsListMini"></div>
@@ -621,7 +594,6 @@
                 <span>Saved Projects</span>
             </button>
 
-            <!-- APPEARANCE HOVER MENU -->
             <div class="menu-item-container">
                 <button class="menu-item">
                     <svg viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -632,16 +604,16 @@
                     <button class="mini-history-item" onclick="setBaseTheme('light')">
                         <svg class="mini-history-icon" viewBox="0 0 24 24" style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="12" cy="12" r="4"/>
-  
+
   <line x1="12" y1="2" x2="12" y2="4"/>
   <line x1="12" y1="20" x2="12" y2="22"/>
-  
+
   <line x1="2" y1="12" x2="4" y2="12"/>
   <line x1="20" y1="12" x2="22" y2="12"/>
-  
+
   <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/>
   <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/>
-  
+
   <line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/>
   <line x1="6.34" y1="17.66" x2="4.93" y2="19.07"/>
 </svg>
@@ -656,7 +628,6 @@
                 </div>
             </div>
 
-            <!-- PERSONALIZATION PAGE LINK -->
             <button class="menu-item" id="menuPersonalizationPage">
                 <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.1 0 2-.9 2-2 0-.51-.2-.98-.52-1.32-.31-.33-.5-.79-.5-1.28 0-1.1.9-2 2-2H17c2.76 0 5-2.24 5-5 0-4.42-4.48-8-10-8z"></path>
@@ -667,15 +638,13 @@
 </svg>
                 <span>Personalization</span>
             </button>
-            
+
             <div class="menu-item-container">
                 <button class="menu-item" id="menuOpenOnestate">
-        <!-- The main folder icon -->
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-        
+
         <span>Open Onestate file</span>
-        
-        <!-- THE MISSING INFO ICON -->
+
         <span class="info-tooltip-wrapper" data-title="Load a downloaded .onestate file to open a fully packaged, offline website directly in the browser.">
     <svg class="info-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; opacity: 0.5;">
         <circle cx="12" cy="12" r="10"></circle>
@@ -687,10 +656,10 @@
     </button>
     <input type="file" id="onestateFileInput" accept=".onestate,.linkstate" hidden>
             </div>
-            
+
             <div class="menu-divider"></div>
 
-            
+
             <button class="menu-item" id="menuAboutBrowser" onclick="document.getElementById('aboutPage').style.display='block'">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
@@ -699,31 +668,23 @@
     </svg>
     <span>About Browser</span>
 </button>
-            
+
             <div class="menu-divider"></div>
             <button class="menu-item" id="menuExit">
                 <svg viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
                 <span>Exit</span>
             </button>
-            
+
         </div>
 
-        <!-- =====================================================
-             STATUS
-        ====================================================== -->
         <div class="status-strip" id="statusBar" hidden>
             <span id="statusText">Ready</span>
         </div>
 
-        <!-- =====================================================
-             MAIN VIEWPORT
-        ====================================================== -->
         <main class="browser-stage">
 
-            <!-- AMBIENT CANVAS BACKGROUND -->
             <canvas id="ambientCanvas" aria-hidden="true"></canvas>
 
-            <!-- ===================== HOME ===================== -->
             <section class="empty-state" id="emptyState">
                 <div class="hero-brand">
                     <div class="hero-brand-mark" aria-hidden="true">
@@ -737,7 +698,6 @@
                 <h1>Open websites<br>packed inside links.</h1>
                 <p class="hero-description">Paste a LINKSTATE below. This browser decodes the project locally, opens the contained site, and can recover the original files.</p>
 
-                <!-- HERO SEARCH WITH SUGGESTION DROPDOWN -->
                 <div class="hero-search-shell">
                     <div class="hero-search">
                         <div class="hero-search-icon" aria-hidden="true">
@@ -760,14 +720,13 @@
                 </div>
             </section>
 
-            <!-- ===================== GENERATE ===================== -->
             <section class="empty-state" id="generateState" hidden>
                 <div class="generate-wrapper">
                     <h1>Generate<br>LINKSTATE.</h1>
                     <p class="hero-description" id="genDescription" style="margin-top: 16px; margin-bottom: 30px;">
                         Package a static website into a single portable link.
                     </p>
-                    
+
                     <div id="genActionContainer" class="gen-drop-zone">
                         <div class="gen-drop-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24"><path d="M12 15V4"></path><path d="M7.5 8.5L12 4L16.5 8.5"></path><path d="M5 14V18A2 2 0 0 0 7 20H17A2 2 0 0 0 19 18V14"></path></svg>
@@ -791,7 +750,7 @@
                         <div class="address-bar" style="width: 100%; cursor: text;" onclick="document.getElementById('genResultLink').select()">
                             <input id="genResultLink" type="text" maxlength="9999999" readonly style="width: 100%; height: 100%; min-width: 0; padding: 0 18px; color: var(--text-primary); background: transparent; border: 0; outline: none; font-size: 0.79rem; text-align: center;">
                         </div>
-                        
+
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%;">
                             <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
                                 <button class="secondary-button" id="genOpenButton" type="button" style="margin-top: 0; background: var(--accent); color: var(--accent-text); border-color: var(--accent);">Open</button>
@@ -808,7 +767,6 @@
                 </div>
             </section>
 
-            <!-- ===================== HISTORY PAGE ===================== -->
             <section class="internal-page" id="historyState" hidden>
                 <div class="internal-page-content">
                     <div class="internal-page-header">
@@ -821,7 +779,6 @@
                 </div>
             </section>
 
-            <!-- ===================== DOWNLOADS PAGE ===================== -->
             <section class="internal-page" id="downloadsState" hidden>
                 <div class="internal-page-content">
                     <div class="internal-page-header">
@@ -834,7 +791,6 @@
                 </div>
             </section>
 
-            <!-- ===================== SAVED PROJECTS PAGE ===================== -->
             <section class="internal-page" id="savedStatesState" hidden>
                 <div class="internal-page-content">
                     <div class="internal-page-header">
@@ -844,20 +800,17 @@
                 </div>
             </section>
 
-            <!-- ===================== ABOUT PAGE ===================== -->
 <section class="internal-page" id="aboutState" hidden>
     <div class="internal-page-content" style="max-width: 950px; margin: 0 auto;">
         <div class="internal-page-header">
             <h1>About Browser</h1>
         </div>
-        
-        <!-- TOP: Hero Text -->
+
         <div style="margin-bottom: 40px; max-width: 850px;">
             <h1 style="font-size: 2.4rem; color: var(--accent); margin: 0 0 16px 0; letter-spacing: -0.02em; line-height: 1.2;">The web was meant to be shared, not complicated.</h1>
             <p style="font-size: 1.15rem; color: var(--text-secondary); margin: 0; line-height: 1.6;">We are bypassing the servers, the terminals, and the deployment pipelines. By stripping away the steep learning curve of repositories and IDE setups, this environment puts the power of instant creation and seamless sharing back where it belongs: in your hands.</p>
         </div>
 
-        <!-- MIDDLE: Two-Column Feature Cards -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
             <div style="background: var(--surface); padding: 28px; border-radius: 12px; border: 1px solid var(--border-strong);">
                 <h3 style="margin: 0 0 14px 0; font-size: 1.15rem; color: var(--text-primary); letter-spacing: -0.01em;">The End of Deployment Friction</h3>
@@ -870,14 +823,12 @@
             </div>
         </div>
 
-        <!-- BOTTOM: Full-Width Roadmap Card -->
         <div style="background: var(--surface); padding: 32px; border-radius: 12px; border: 1px solid var(--accent); position: relative; overflow: hidden;">
-            <!-- Subtle glow effect -->
             <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--accent); opacity: 0.05; filter: blur(40px); border-radius: 50%;"></div>
-            
+
             <h3 style="margin: 0 0 16px 0; font-size: 1.3rem; color: var(--accent); letter-spacing: -0.02em;">The Paradigm Shift (Future Roadmap)</h3>
             <p style="margin: 0 0 20px 0; font-size: 1rem; color: var(--text-primary); line-height: 1.6;">This is just the prototype. We are fundamentally rethinking how browsing, building, and sharing works:</p>
-            
+
             <ul style="margin: 0; padding-left: 20px; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7;">
                 <li style="margin-bottom: 12px;"><strong style="color: var(--text-primary);">Limitless Expansion:</strong> Breaking the boundaries of file size and format, moving far beyond standard HTML/CSS/JS to support massive, asset-heavy digital environments and multimedia.</li>
                 <li style="margin-bottom: 12px;"><strong style="color: var(--text-primary);">The Ultimate Workspace:</strong> Why switch apps? Soon, you will write, edit, and execute your code directly inside the browser UI. The viewer becomes the studio.</li>
@@ -886,7 +837,7 @@
         </div>
     </div>
 </section>
-            <!-- ===================== PERSONALIZATION PAGE ===================== -->
+
             <section class="internal-page" id="personalizationState" hidden>
                 <div class="internal-page-content">
                     <div class="internal-page-header">
@@ -904,8 +855,7 @@
 </svg>
                             Theme and colors
                         </h3>
-                        
-                        <!-- BRAVE-STYLE LIGHT/DARK SELECTOR -->
+
                         <div class="theme-mode-selector">
                             <button class="mode-btn" id="modeBtnLight" onclick="setBaseTheme('light')">
     <svg class="mini-history-icon" viewBox="0 0 24 24" style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -927,7 +877,6 @@
 </button>
                         </div>
 
-                        <!-- BRAVE-STYLE MULTI-COLOR ACCENT SWATCHES -->
                         <div class="brave-theme-grid" id="themeGrid">
                             <button class="brave-swatch active-swatch" data-accent="default">
                                 <div class="swatch-circle" style="background: conic-gradient(#e8eaed 0 180deg, #5f6368 180deg 270deg, #3c4043 270deg 360deg);"></div>
@@ -954,7 +903,6 @@
                                 <div class="swatch-circle" style="background: conic-gradient(#f2688f 0 180deg, #7a1d3a 180deg 270deg, #9e2a4f 270deg 360deg);"></div>
                             </button>
 
-                            <!-- COLOR PICKER SWATCH -->
                             <button class="brave-swatch" id="customColorPickerBtn" data-accent="custom" title="Custom Color">
                                 <div class="swatch-circle" style="background: var(--surface-active); display: grid; place-items: center;">
                                     <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; color: var(--text-primary);" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -970,33 +918,30 @@
                     <div class="personalization-section" style="margin-top: 24px;">
                         <h3 style="margin-bottom: 8px; font-weight: 600; font-size: 1.1rem;">Custom Wallpaper</h3>
                         <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 20px;">Upload an image to replace the dynamic ambient background.</p>
-                        
+
                         <div style="display: flex; gap: 12px; margin-bottom: 30px;">
                             <button class="secondary-button" id="uploadWallpaperBtn" style="margin-top: 0; background: var(--accent); color: var(--accent-text); border-color: var(--accent);">Upload Image...</button>
                             <button class="secondary-button" id="clearWallpaperBtn" style="margin-top: 0; color: var(--error); border-color: rgba(255,113,105,0.3); background: rgba(255,113,105,0.05);">Clear Wallpaper</button>
                             <input type="file" id="wallpaperInput" accept="image/*" hidden>
                         </div>
-                        
+
                         <h4 style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.85rem;">Recent Wallpapers</h4>
                         <div class="wallpaper-grid" id="recentWallpapersGrid"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- ===================== LOADING ===================== -->
             <section class="loading-state" id="loadingState" hidden>
                 <div class="loading-spinner" aria-hidden="true"></div>
                 <strong id="loadingTitle">Decoding LINKSTATE</strong>
                 <span id="loadingMessage">Reconstructing the contained website...</span>
             </section>
 
-            <!-- ===================== DYNAMIC VIEWPORT CONTAINER ===================== -->
             <div id="viewportContainer" style="position: absolute; inset: 0; z-index: 50; width: 100%; height: 100%; pointer-events: none;">
                 <iframe class="website-frame" id="websiteFrame" title="LINKSTATE website" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads" hidden></iframe>
                 <webview class="website-frame" id="standardWebFrame" hidden></webview>
             </div>
 
-            <!-- ===================== ERROR ===================== -->
             <section class="error-state" id="errorState" hidden>
                 <div class="error-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5V13"></path><circle cx="12" cy="16.5" r="0.8"></circle></svg>
@@ -1008,9 +953,6 @@
 
         </main>
 
-        <!-- =====================================================
-             FOOTER
-        ====================================================== -->
         <footer class="browser-footer">
             <div class="footer-left">
                 <span id="runtimeStatus">Local LINKSTATE Runtime</span>
@@ -1024,9 +966,6 @@
 
     </div>
 
-    <!-- =====================================================
-         RECOVERY PANEL
-    ====================================================== -->
     <div class="recovery-overlay" id="recoveryOverlay" hidden>
         <aside class="recovery-panel" aria-labelledby="recoveryTitle">
             <div class="recovery-panel-header">
@@ -1053,9 +992,6 @@
         </aside>
     </div>
 
-    <!-- =====================================================
-         SAVE ALIAS MODAL
-    ====================================================== -->
     <div class="recovery-overlay" id="saveModal" hidden style="align-items: center; justify-content: center;">
         <div class="recovery-panel" style="width: 400px; height: auto; border-radius: 12px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
             <h2 style="margin: 0 0 16px;">Save Local Alias</h2>

@@ -1,15 +1,9 @@
 'use strict';
 
-/* =========================================================
-   LINKSTATE BROWSER
-   Electron Main Process
-========================================================= */
-
 const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
-// Handle creating desktop/start menu shortcuts on install
 if (require('electron-squirrel-startup')) {
     app.quit();
 }
@@ -18,22 +12,16 @@ let mainWindow;
 let fileToOpen = null;
 const activeDownloads = new Map();
 
-/* =========================================================
-   SINGLE INSTANCE LOCK & OS FILE ASSOCIATION (WINDOWS/LINUX)
-========================================================= */
-
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
     app.quit();
 } else {
-    // This runs if the user double-clicks a file while the app is already open
     app.on('second-instance', (event, commandLine, workingDirectory) => {
         if (mainWindow) {
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
-            
-            // Find the .onestate file in the arguments
+
             const fileArg = commandLine.find(arg => arg.endsWith('.onestate'));
             if (fileArg && fs.existsSync(fileArg)) {
                 try {
@@ -46,7 +34,6 @@ if (!gotTheLock) {
         }
     });
 
-    // Check args when the app is completely closed
     const initialFileArg = process.argv.find(arg => arg.endsWith('.onestate'));
     if (initialFileArg) {
         fileToOpen = initialFileArg;
@@ -64,9 +51,6 @@ if (!gotTheLock) {
     });
 }
 
-/* =========================================================
-   DOWNLOAD ACTIONS (PAUSE, RESUME, CANCEL) & FILE LOCATION
-========================================================= */
 ipcMain.on('download-action', (event, { action, filename }) => {
     const item = activeDownloads.get(filename);
     if (item) {
@@ -84,14 +68,9 @@ ipcMain.on('open-file-location', (event, filename) => {
     if (fs.existsSync(fullPath)) {
         shell.showItemInFolder(fullPath);
     } else {
-        // Fallback: just opens the downloads folder if the file was moved
         shell.openPath(app.getPath('downloads'));
     }
 });
-
-/* =========================================================
-   CREATE MAIN WINDOW
-========================================================= */
 
 function createWindow() {
 
@@ -101,7 +80,6 @@ function createWindow() {
         minWidth: 760,
         minHeight: 560,
 
-        // POINTS TO YOUR ICON IN THE BUILD FOLDER
         icon: path.join(__dirname, '../build/icon.ico'),
 
         backgroundColor: '#090a0a',
@@ -122,8 +100,7 @@ function createWindow() {
 
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
-        
-        // Push file data to the UI if opened via double click when app was closed
+
         if (fileToOpen && fs.existsSync(fileToOpen)) {
             try {
                 const content = fs.readFileSync(fileToOpen, 'utf8');
@@ -134,20 +111,16 @@ function createWindow() {
         }
     });
 
-    // =====================================================
-    // TRACK STANDARD WEB DOWNLOADS
-    // =====================================================
     mainWindow.webContents.session.on('will-download', (event, item) => {
         const fileName = item.getFilename();
         const startTime = Date.now();
-        
-        // Store item so we can control it
+
         activeDownloads.set(fileName, item);
-        
+
         if (mainWindow) {
             mainWindow.webContents.send('download-started', fileName);
         }
-        
+
         item.on('updated', (event, state) => {
             if (mainWindow) {
                 mainWindow.webContents.send('download-progress', {
@@ -155,14 +128,14 @@ function createWindow() {
                     received: item.getReceivedBytes(),
                     total: item.getTotalBytes(),
                     startTime: startTime,
-                    state: state // 'progressing' or 'interrupted'
+                    state: state
                 });
             }
         });
-        
+
         item.once('done', (event, state) => {
             activeDownloads.delete(fileName);
-            
+
             if (state === 'completed' && mainWindow) {
                 mainWindow.webContents.send('download-completed', fileName);
             } else if (state === 'cancelled' && mainWindow) {
@@ -183,7 +156,6 @@ function createWindow() {
     });
 }
 
-// OS File Association Logic (macOS)
 app.on('open-file', (event, filePath) => {
     event.preventDefault();
     if (filePath.endsWith('.onestate')) {
@@ -197,10 +169,6 @@ app.on('open-file', (event, filePath) => {
         }
     }
 });
-
-/* =========================================================
-   CLOSE APPLICATION
-========================================================= */
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
